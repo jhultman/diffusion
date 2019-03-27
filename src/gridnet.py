@@ -161,7 +161,7 @@ def viz_diffusion(node_potentials, H, W):
     fig.savefig('../images/diffusion.png', 
         bbox_inches='tight', 
         pad_inches=0,
-        dpi=400,
+        dpi=200,
     )
 
 def main():
