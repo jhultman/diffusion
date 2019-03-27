@@ -154,7 +154,7 @@ def how_sparse(mat):
 def viz_diffusion(node_potentials, H, W):
     """Plot realized node potential as grid."""
     img = node_potentials.reshape(H, W)
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(4, 4))
     ax.imshow(img)
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
