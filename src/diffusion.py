@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.sparse.linalg
-np.random.seed(7)
+np.random.seed(27)
 
 def get_adjacency_size(H, W):
     """
@@ -24,10 +24,10 @@ def make_hori_conn(i, j):
 def make_vert_conn(i, j):
     """Connect (i, j) with (i-1, j)."""
     H, W = i.shape
-    src = (i[1:] * W + j[1:]).ravel()
-    dst = ((i[1:] - 1) * W + j[1:]).ravel()
+    src = (i[1:, :] * W + j[1:, :]).ravel()
+    dst = ((i[1:, :] - 1) * W + j[1:, :]).ravel()
     rng = np.arange(0, H * W - W).ravel()
-    return rng, src, dst
+    return src, dst, rng
 
 def make_conn(H, W):
     """Connect each node with its
@@ -35,7 +35,6 @@ def make_conn(H, W):
     i, j = np.mgrid[:H, :W]
     h_src, h_dst, h_rng = make_hori_conn(i, j)
     v_src, v_dst, v_rng = make_vert_conn(i, j)
-
     src = np.r_[h_src, v_src]
     dst = np.r_[h_dst, v_dst]
     rng = np.r_[h_rng, v_rng]
@@ -60,16 +59,16 @@ def make_adjacency(H, W):
 
 def make_resistance(n, rho=1):
     """
-    For simplicity, assume resistance
+    For simplicity assume resistance
     matrix multiple of identity.
     """
     R = scipy.sparse.spdiags(np.full(n, rho), 0, n, n)
     return R
 
-def get_slice(L, maxlength, margin=5):
+def get_slice(L, maxlength, margin=10):
     """
-    Apply magic number heuristic to 
-    get interesting non-degenerate demo.
+    Apply magic heuristic to get interesting 
+    non-degenerate demo. Best not to ask.
     """
     v0 = np.random.randint(L // margin, L)
     v1 = v0 + np.random.randint(min(L - v0, maxlength))
@@ -111,10 +110,10 @@ def make_fixed_node_mats(H, W, fixed_val=1):
 def make_blocksys(A, R, B, C):
     """
     Make block 3x3 system for solving:
-        A f + s     = 0
-        R f + A.T e = 0
-        B e + C s   = d
-    In the variable (f, s, e).
+        A f + I s +   0 e = 0
+        R f + 0 s + A.T e = 0
+        0 f + B s +   C e = d
+    In the stacked variable (f, s, e).
     """
     m, n = A.shape
     I_mxm = scipy.sparse.eye(m)
@@ -145,10 +144,8 @@ def how_sparse(mat):
     """Summarize problem size and structure."""
     m, n = mat.shape
     pct = mat.nnz / (m * n)
-    side = int(np.sqrt(m * n))
     msg = f'Linear system: {m} eqns in {n} vars.\n'
-    msg += f'Sparsity: {pct:.010f}.\n'
-    msg += f'Effective dimsize: {side:d}.'
+    msg += f'Sparsity: {pct:.010f}.'
     print(msg)
     
 def viz_diffusion(node_potentials, H, W):
