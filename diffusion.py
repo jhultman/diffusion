@@ -5,8 +5,8 @@ np.random.seed(27)
 
 def get_adjacency_size(H, W):
     """
-    Each of the H x W nodes participates 
-    in two edges (amortized). Lose (H + W) 
+    Each of the H x W nodes participates
+    in two edges (amortized). Lose (H + W)
     edges to boundaries.
     """
     m = H * W
@@ -45,7 +45,7 @@ def init_sparse_adjacency(H, W):
     m, n = get_adjacency_size(H, W)
     A = scipy.sparse.lil_matrix((m, n))
     return A
-    
+
 def make_adjacency(H, W):
     """
     All cols sum to zero and
@@ -55,7 +55,7 @@ def make_adjacency(H, W):
     src, dst, rng = make_conn(H, W)
     A[src, rng] = -1
     A[dst, rng] = +1
-    return A.tocsr()   
+    return A.tocsr()
 
 def make_resistance(n, rho=1):
     """
@@ -67,12 +67,12 @@ def make_resistance(n, rho=1):
 
 def get_slice(L, maxlength, margin=10):
     """
-    Apply magic heuristic to get interesting 
+    Apply magic heuristic to get interesting
     non-degenerate demo. Best not to ask.
     """
     v0 = np.random.randint(L // margin, L)
     v1 = v0 + np.random.randint(min(L - v0, maxlength))
-    return slice(v0, v1)   
+    return slice(v0, v1)
 
 def get_fixed_node_mask(H, W, k=3, maxwidth=30, maxheight=10):
     """
@@ -95,7 +95,7 @@ def masked_scatter(size, val, mask, default=0):
 
 def make_fixed_node_mats(H, W, fixed_val=1):
     """
-    Matrices B and C enforce fixed node 
+    Matrices B and C enforce fixed node
     and source/sink constraints.
     """
     m, n = get_adjacency_size(H, W)
@@ -106,7 +106,7 @@ def make_fixed_node_mats(H, W, fixed_val=1):
     B[~mask, ~mask] = 1
     C[mask, mask] = 1
     return B, C, d
-   
+
 def make_blocksys(A, R, B, C):
     """
     Make block 3x3 system for solving:
@@ -147,7 +147,7 @@ def how_sparse(mat):
     msg = f'Linear system: {m} eqns in {n} vars.\n'
     msg += f'Sparsity: {pct:.010f}.'
     print(msg)
-    
+
 def viz_diffusion(node_potentials, H, W):
     """Plot realized node potential as grid."""
     img = node_potentials.reshape(H, W)
@@ -155,24 +155,24 @@ def viz_diffusion(node_potentials, H, W):
     ax.imshow(img)
     ax.get_xaxis().set_visible(False)
     ax.get_yaxis().set_visible(False)
-    fig.savefig('../images/diffusion.png', 
-        bbox_inches='tight', 
+    fig.savefig('./diffusion.png',
+        bbox_inches='tight',
         pad_inches=0,
         dpi=200,
     )
 
 def main():
     """
-    Can comfortably push to 500x500 
+    Can comfortably push to 500x500
     on intel i7 w/ 8GB RAM.
     """
     H, W = 500, 500
     m, n = get_adjacency_size(H, W)
     blocksys, rhs = make_problem(H, W)
     fse = scipy.sparse.linalg.spsolve(blocksys, rhs)
-    f, s, e = np.split(fse, [m, m + n])   
+    f, s, e = np.split(fse, [m, m + n])
     how_sparse(blocksys)
     viz_diffusion(e, H, W)
-    
+
 if __name__ == '__main__':
     main()
